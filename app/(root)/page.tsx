@@ -32,10 +32,7 @@ export default function Home() {
     </section>
 
 
-    <section className="bg-primary-50 bg-dotted-pattern px-10 bg-contain py-5 md:py-10">
-
-      <RoomForm />
-    </section>
+   
     
     </>
   );
