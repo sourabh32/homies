@@ -16,7 +16,7 @@ export interface RoomProps  {
     numBedrooms:Number,
     numBathrooms:Number,
     petPolicy:Boolean,
-    lookingFor:"Male" | "Female" | "Any",
+    lookingFor:String,
     type:String,
     hasKitchen:Boolean,
     hasParking:Boolean,
