@@ -21,6 +21,7 @@ import  { Document, Schema, model, models } from "mongoose";
 
 
 
+
 const roomSchema = new Schema({
     location:String,
     description:{type:String,required:true},
@@ -35,10 +36,13 @@ const roomSchema = new Schema({
     lookingFor:{type:String,default:"Any"},
     user:{  type: Schema.Types.ObjectId,
         ref: 'User'},
-        benefits: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Benefit'
-      }],
+    hasKitchen:{type:Boolean,default:false}  ,
+    hasParking:{type:Boolean,default:false}  ,
+    smoking:{type:Boolean,default:false}  ,
+    alcohol:{type:Boolean,default:false}  ,
+    otherCharges:{type:Boolean,default:false}  ,
+    hasFurniture:{type:Boolean,default:false}  ,
+    
 })
 
 const Room = models.Room || model('Room', roomSchema);

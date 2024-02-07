@@ -214,3 +214,25 @@ body {
 .p-medium-12 {
   @apply text-[12px] font-medium leading-[20px];
 }
+
+
+/* form styles */
+
+/* .input-field {
+  @apply  h-[54px] focus-visible:ring-offset-0 placeholder:text-grey-500 rounded-full p-regular-16 px-4 py-3 border-none focus-visible:ring-transparent !important;
+} */
+
+.textarea{
+ @apply bg-gray-50 flex flex-1 placeholder:text-gray-500 p-regular-16 px-5 py-3 border-none focus-visible:ring-transparent !important;
+}
+
+.datePicker {
+  width: 100%;
+}
+
+.react-datepicker__input-container input {
+  background-color: transparent;
+  width: 100%;
+  outline: none;
+  margin-left: 16px;
+}

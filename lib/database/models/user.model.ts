@@ -6,13 +6,10 @@ const UserSchema = new Schema({
   username: { type: String, required: true, unique: true },
   firstName: { type: String },
   lastName:{type:String},
-  preferences:[{type:Schema.Types.ObjectId,
-    ref:'Preference'
-} 
-],
-  gender: {type: String, required: true },
+  
+  gender: {type: String },
   photo: { type: String, required: true },
-  isAdult:{type:Boolean,default:false},
+  
 })
 
 const User = models.User || model('User', UserSchema);

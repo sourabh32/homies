@@ -26,9 +26,11 @@ export const getAllBenefit = async () => {
       await connectToDatabase();
   
       const allBenefits = await Benefit.find();
+      console.log(allBenefits)
   
       return JSON.parse(JSON.stringify(allBenefits));
     } catch (error) {
+      console.log(error)
       handleError(error)
     }
   }

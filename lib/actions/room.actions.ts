@@ -6,7 +6,7 @@ import { handleError } from "../utils"
 
 
 export interface RoomProps  {
-
+    location:String
     userId:String,
     imageUrl:String,
     moveIn:Date,
@@ -16,40 +16,25 @@ export interface RoomProps  {
     numBathrooms:Number,
     petPolicy:Boolean,
     lookingFor:"Male" | "Female" | "Any",
-    benefits:String[],
     type:String,
+    hasKitchen:Boolean,
+    hasParking:Boolean,
+    hasFurniture:Boolean
+    smoking:Boolean
+    alcohol:Boolean
    
 
 }
 
-export const createRoom = async (room:RoomProps) =>{
- const {type,
-    description,
-    lookingFor,
-    numBathrooms,
-    numBedrooms,
-    petPolicy,
-    rent,
-    moveIn,
-    imageUrl,
-    userId,
-    benefits
 
-} = room
+
+export const createRoom = async (room:RoomProps) =>{
+
     try {
           await connectToDatabase();
-        const newRoom = await  Room.create({type,
-            description,
-            lookingFor,
-            numBathrooms,
-            numBedrooms,
-            petPolicy,
-            rent,
-            moveIn,
-            imageUrl,
-            user:userId,
-            benefits
-        
+        const newRoom = await  Room.create({
+            ...room
+    
         })
         return JSON.parse(JSON.stringify(newRoom))
     } catch (error) {

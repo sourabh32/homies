@@ -1,3 +1,4 @@
+import RoomForm from "@/components/shared/RoomForm";
 import { Button } from "@/components/ui/button";
 
 import Image from "next/image";
@@ -29,6 +30,13 @@ export default function Home() {
           />
     </div>
     </section>
+
+
+    <section className="bg-primary-50 bg-dotted-pattern px-10 bg-contain py-5 md:py-10">
+
+      <RoomForm />
+    </section>
+    
     </>
   );
 }
