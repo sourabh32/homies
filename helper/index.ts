@@ -5,7 +5,7 @@ export const headerLinks = [
     },
     {
       label: 'Post Ad',
-      route: '/events/create',
+      route: '/place/create',
     },
     {
       label: 'My Profile',

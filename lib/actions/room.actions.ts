@@ -2,12 +2,13 @@
 
 import { connectToDatabase } from "../database"
 import Room from "../database/models/room.model"
+import User from "../database/models/user.model"
 import { handleError } from "../utils"
 
 
 export interface RoomProps  {
     location:String
-    userId:String,
+    
     imageUrl:String,
     moveIn:Date,
     description:String,
@@ -28,9 +29,31 @@ export interface RoomProps  {
 
 
 
-export const createRoom = async (room:RoomProps) =>{
+type CreateEventParams ={
+    userId:string,
+    room:RoomProps
+}
+
+
+export const createRoom = async ({ userId, room}: CreateEventParams) =>{
+
 
     try {
+        await connectToDatabase()
+    
+        const poster = await User.findById(userId)
+        if (!poster) throw new Error('Organizer not found')
+    
+        const newEvent = await Room.create({ ...room,userId:poster._id })
+        
+    
+        return JSON.parse(JSON.stringify(newEvent))
+      } catch (error) {
+        handleError(error)
+      }
+
+    try {
+
           await connectToDatabase();
         const newRoom = await  Room.create({
             ...room

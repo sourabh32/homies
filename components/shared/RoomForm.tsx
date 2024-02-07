@@ -28,6 +28,8 @@ import { IRoom } from "@/lib/database/models/room.model"
 import { useUploadThing } from "@/utils/uploadthing"
 import { MultiUploader } from "./UploadImage"
 import { autocompleteAddress } from "@/lib/actions/autocomplete.actions"
+import { createRoom } from "@/lib/actions/room.actions"
+import { useRouter } from "next/router"
 
 
 
@@ -74,7 +76,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
 
 
     
-
+   const router = useRouter()
     const { startUpload } = useUploadThing("imageUploader");
 
     const form = useForm<z.infer<typeof formSchema>>({
@@ -102,9 +104,37 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
     })
 
 
-    function onSubmit(values: z.infer<typeof formSchema>) {
-      
+   async function onSubmit(values: z.infer<typeof formSchema>) {
+    let uploadedImageUrl = values.imageUrl
+      if(files.length>0){
+        const uploadedImages = await startUpload(files)
+        if(!uploadedImages) {
+            return
+          }
+    
+          uploadedImageUrl = uploadedImages[0].url
+      }
+
+
+
+      if(type === 'Create') {
         console.log(values)
+        try {
+          const newEvent = await createRoom({
+            room: { ...values, imageUrl: uploadedImageUrl },
+            userId,
+            
+          })
+  
+          if(newEvent) {
+            form.reset();
+            router.push(`/place/${newEvent._id}`)
+          }
+        } catch (error) {
+          console.log(error);
+        }
+      }
+        
     }
     return (
         <Form {...form}>
