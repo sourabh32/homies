@@ -3,7 +3,18 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
+import { CalendarIcon } from "@radix-ui/react-icons"
+import { format } from "date-fns"
 
+
+import { cn } from "@/lib/utils"
+
+import { Calendar } from "@/components/ui/calendar"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css";
 import { Button } from "@/components/ui/button"
@@ -29,7 +40,7 @@ import { useUploadThing } from "@/utils/uploadthing"
 import { MultiUploader } from "./UploadImage"
 import { autocompleteAddress } from "@/lib/actions/autocomplete.actions"
 import { createRoom } from "@/lib/actions/room.actions"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 
 
 
@@ -38,12 +49,12 @@ const formSchema = z.object({
     location: z.string().min(2).max(50),
     description: z.string().min(10).max(400),
     moveIn: z.date(),
-    rent: z.number(),
-    numBedrooms: z.number(),
-    numBathrooms: z.number(),
+    rent: z.string(),
+    numBedrooms: z.string(),
+    numBathrooms: z.string(),
     petPolicy: z.boolean(),
     type: z.string(),
-    
+
     imageUrl: z.string(),
     hasFurniture: z.boolean(),
     otherCharges: z.boolean(),
@@ -66,75 +77,82 @@ type EventFormProps = {
 
 
 
+const roominitialValues = {
+    location: "",
+    description: "",
+    moveIn: new Date(),
+    rent: "",
+    numBedrooms: "",
+    numBathrooms: "",
+    hasKitchen: false,
+    hasFurniture: false,
+    petPolicy: false,
 
+    imageUrl: "",
+    hasParking: false,
+    lookingFor: "Any",
+    smoking: false,
+    alcohol: false
+
+
+
+}
 
 
 const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
 
     const [files, setFiles] = useState<File[]>([])
 
-
-
+  const initialValues =  room && type === 'Update' 
+  ? { 
+    ...room, 
+    moveIn: new Date(room.moveIn)
     
-   const router = useRouter()
+  }
+  : roominitialValues;
+
+
+
+    const router = useRouter()
     const { startUpload } = useUploadThing("imageUploader");
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
-        defaultValues: {
-            location: "",
-            description: "",
-            moveIn: new Date(),
-            rent: 100,
-            numBedrooms: 2,
-            numBathrooms: 2,
-            hasKitchen: true,
-            hasFurniture: false,
-            petPolicy: true,
-            
-            imageUrl: "",
-            hasParking: false,
-            lookingFor: "Male",
-            smoking: false,
-            alcohol: false
-
-
-
-        },
+        defaultValues: initialValues
     })
 
 
-   async function onSubmit(values: z.infer<typeof formSchema>) {
-    let uploadedImageUrl = values.imageUrl
-      if(files.length>0){
-        const uploadedImages = await startUpload(files)
-        if(!uploadedImages) {
-            return
-          }
-    
-          uploadedImageUrl = uploadedImages[0].url
-      }
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+        let uploadedImageUrl = values.imageUrl
+        if (files.length > 0) {
+            const uploadedImages = await startUpload(files)
+            if (!uploadedImages) {
+                return
+            }
 
-
-
-      if(type === 'Create') {
-        console.log(values)
-        try {
-          const newEvent = await createRoom({
-            room: { ...values, imageUrl: uploadedImageUrl },
-            userId,
-            
-          })
-  
-          if(newEvent) {
-            form.reset();
-            router.push(`/place/${newEvent._id}`)
-          }
-        } catch (error) {
-          console.log(error);
+            uploadedImageUrl = uploadedImages[0].url
         }
-      }
-        
+
+
+
+        if (type === 'Create') {
+            console.log(values)
+            try {
+                const newEvent = await createRoom({
+                    room: { ...values, imageUrl: uploadedImageUrl },
+                    userId,
+
+                })
+
+                if (newEvent) {
+                    form.reset();
+                    router.push(`/place/${newEvent._id}`)
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
     }
     return (
         <Form {...form}>
@@ -215,7 +233,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                             <FormItem className="w-full">
                                 <FormLabel>Rent</FormLabel>
                                 <FormControl>
-                                    <Input className="w-full" placeholder="rent" {...field} />
+                                    <Input type="number" placeholder="rent" {...field} />
                                 </FormControl>
                                 <FormDescription>
                                     Payble rent.
@@ -229,26 +247,42 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                         control={form.control}
                         name="moveIn"
                         render={({ field }) => (
-                            <FormItem className="w-full">
-                                <FormLabel>Bathrooms</FormLabel>
+                            <FormItem className="flex flex-col">
+                            <FormLabel>MoveIn date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <FormControl>
-
-                                    <div className="flex-center h-[54px] w-full overflow-hidden rounded-full bg-grey-50 px-4 py-2">
-                                        <CalendarCheck />
-                                        <DatePicker
-                                            selected={field.value}
-                                            onChange={(date: Date) => field.onChange(date)}
-
-
-                                            dateFormat="MM/dd/yyyy"
-                                            wrapperClassName="datePicker"
-                                        />
-                                    </div>
-
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-[240px]  text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
                                 </FormControl>
-
-                                <FormMessage />
-                            </FormItem>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  disabled={(date:Date) =>
+                                    date <= new Date() || date < new Date("1900-01-01")
+                                  }
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <FormMessage />
+                          </FormItem>
                         )}
                     />
 
@@ -287,7 +321,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                             <FormItem className="w-full">
                                 <FormLabel>Bedrooms</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="bedrooms" {...field} />
+                                    <Input type="number" placeholder="bedrooms" {...field} />
                                 </FormControl>
                                 <FormDescription>
                                     Number of bedhrooms.
@@ -302,7 +336,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                             <FormItem className="w-full">
                                 <FormLabel>Bathrooms</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="bathrooms" {...field} />
+                                    <Input type="number" placeholder="bathrooms" {...field} />
                                 </FormControl>
 
                                 <FormMessage />
@@ -311,7 +345,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                     />
 
                 </div>
-                <div className="flex items-start border flex-col sm:flex-row gap-5 space-x-2">
+                <div className="flex items-start  flex-col sm:flex-row gap-5 space-x-2">
                     <FormField control={form.control} name="hasFurniture"
 
                         render={({ field }) => (
@@ -397,17 +431,17 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
 
                 <p className="text-center text-2xl font-bold text-slate-800">Room Prefernces</p>
 
-                <div className="flex border flex-col gap-5 sm:flex-row items-start   space-x-2">
+                <div className="flex  flex-col gap-5 sm:flex-row items-start   space-x-2">
                     <FormField control={form.control} name="lookingFor"
 
                         render={({ field }) => (
                             <FormItem className="w-full">
-                                
+
                                 <FormControl>
                                     <TypeDropdown type="lookingFor" onChangeHandler={field.onChange} value={field.value} />
                                 </FormControl>
                                 <FormDescription>
-                                 looking for
+                                    looking for
                                 </FormDescription>
                             </FormItem>
                         )}
@@ -429,7 +463,7 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                                     </div>
                                 </FormControl>
                                 <FormDescription>
-                                 Is smoking allowed.
+                                    Is smoking allowed.
                                 </FormDescription>
                             </FormItem>
                         )}
@@ -449,10 +483,10 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
                                             Alcohol
                                         </label>
                                     </div>
-                                    
+
                                 </FormControl>
                                 <FormDescription>
-                                 Is smoking allowed.
+                                    Is smoking allowed.
                                 </FormDescription>
                             </FormItem>
                         )}
@@ -463,7 +497,16 @@ const RoomForm = ({ userId, type, room, roomId }: EventFormProps) => {
 
 
 
-                <Button type="submit">Submit</Button>
+                <Button 
+          type="submit"
+          size="lg"
+          disabled={form.formState.isSubmitting}
+          className="button col-span-2 w-full"
+        >
+          {form.formState.isSubmitting ? (
+            'Submitting...'
+          ): `${type} Event `}</Button>
+
             </form>
         </Form>
     )

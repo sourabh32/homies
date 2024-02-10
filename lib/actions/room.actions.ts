@@ -6,62 +6,72 @@ import User from "../database/models/user.model"
 import { handleError } from "../utils"
 
 
-export interface RoomProps  {
-    location:String
-    
-    imageUrl:String,
-    moveIn:Date,
-    description:String,
-    rent:Number,
-    numBedrooms:Number,
-    numBathrooms:Number,
-    petPolicy:Boolean,
-    lookingFor:String,
-    type:String,
-    hasKitchen:Boolean,
-    hasParking:Boolean,
-    hasFurniture:Boolean
-    smoking:Boolean
-    alcohol:Boolean
-   
+export interface RoomProps {
+  location: String
+
+  imageUrl: String,
+  moveIn: Date,
+  description: String,
+  rent: String,
+  numBedrooms: String,
+  numBathrooms: String,
+  petPolicy: Boolean,
+  lookingFor: String,
+  type: String,
+  hasKitchen: Boolean,
+  hasParking: Boolean,
+  hasFurniture: Boolean
+  smoking: Boolean
+  alcohol: Boolean
+
 
 }
 
 
 
-type CreateEventParams ={
-    userId:string,
-    room:RoomProps
+type CreateEventParams = {
+  userId: string,
+  room: RoomProps
 }
 
 
-export const createRoom = async ({ userId, room}: CreateEventParams) =>{
+const populateEvent = (query: any) => {
+  return query
+    .populate({ path: 'user', model: User, select: '_id firstName lastName photo email' })
+  
+}
 
 
-    try {
-        await connectToDatabase()
-    
-        const poster = await User.findById(userId)
-        if (!poster) throw new Error('Organizer not found')
-    
-        const newEvent = await Room.create({ ...room,userId:poster._id })
-        
-    
-        return JSON.parse(JSON.stringify(newEvent))
-      } catch (error) {
-        handleError(error)
-      }
 
-    try {
+export const createRoom = async ({ userId, room }: CreateEventParams) => {
 
-          await connectToDatabase();
-        const newRoom = await  Room.create({
-            ...room
-    
-        })
-        return JSON.parse(JSON.stringify(newRoom))
-    } catch (error) {
-       handleError(error)
-    }
 
+  try {
+    await connectToDatabase()
+
+    const poster = await User.findById(userId)
+    if (!poster) throw new Error('Organizer not found')
+    console.log("from,", poster)
+    const newEvent = await Room.create({ ...room, user: poster._id })
+    return JSON.parse(JSON.stringify(newEvent))
+  } catch (error) {
+    handleError(error)
+  }
+
+
+}
+
+
+export async function getRoomById(eventId: string) {
+  try {
+    await connectToDatabase()
+
+    const event = await populateEvent(Room.findById(eventId))
+
+    if (!event) throw new Error('Event not found')
+
+    return JSON.parse(JSON.stringify(event))
+  } catch (error) {
+    handleError(error)
+  }
 }
